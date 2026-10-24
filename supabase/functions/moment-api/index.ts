@@ -90,6 +90,20 @@ async function ownedGift(ownerId: string, giftId: unknown): Promise<any> {
   return gift;
 }
 
+async function isAdmin(userId: string): Promise<boolean> {
+  const row = checked(await admin.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle(), "Не удалось проверить права администратора.");
+  return Boolean(row);
+}
+
+async function publishTestGift(user: AuthUser, giftId: unknown): Promise<Json> {
+  if (!(await isAdmin(user.id))) throw new ApiError("Доступ к тестовой публикации запрещён.", 403);
+  const gift = await ownedGift(user.id, giftId);
+  const published = checked(await admin.rpc("publish_test_gift", {
+    p_actor_id: user.id, p_gift_id: gift.id,
+  }), "Не удалось выдать тестовую ссылку.");
+  return { gift: await serializeGift(published) };
+}
+
 async function signedMedia(giftId: string): Promise<any[]> {
   const media = checked(await admin.from("gift_media").select("*").eq("gift_id", giftId).order("sort_order"), "Не удалось загрузить медиа.");
   return await Promise.all((media || []).map(async (item: any) => {
@@ -109,6 +123,7 @@ async function serializeGift(gift: any, withMedia = true): Promise<Json> {
   const answer = checked(await admin.from("recipient_responses").select("choice,responded_at").eq("gift_id", gift.id).maybeSingle());
   return {
     id: gift.id, status: gift.status, tariff: gift.tariff_slug,
+    is_test: Boolean(gift.is_test),
     recipient: gift.recipient_name, title: gift.title, message: gift.message,
     sender: gift.sender_name, occasion: gift.occasion,
     contact_email: gift.contact_email, template: gift.template,
@@ -366,7 +381,7 @@ async function refund(user: AuthUser, body: Json): Promise<Json> {
 }
 
 async function notifyFirstOpen(gift: any): Promise<void> {
-  if (gift.tariff_slug !== "premium" || gift.open_notification_sent_at) return;
+  if (gift.is_test || gift.tariff_slug !== "premium" || gift.open_notification_sent_at) return;
   const profile = checked(await admin.from("profiles").select("telegram_id,contact_email").eq("id", gift.owner_id).maybeSingle());
   const owner = await admin.auth.admin.getUserById(gift.owner_id);
   const destination = gift.contact_email || profile?.contact_email || owner.data.user?.email;
@@ -404,6 +419,7 @@ async function openGift(body: Json): Promise<Json> {
   if (opened[0].first_open) EdgeRuntime.waitUntil(notifyFirstOpen(gift).catch((error) => console.error("Open notification failed", error)));
   return {
     template: gift.template, music_track: gift.music_track,
+    is_test: Boolean(gift.is_test),
     recipient: gift.recipient_name, title: gift.title, message: gift.message,
     sender: gift.sender_name, occasion: gift.occasion, media,
     allow_answers: Boolean(selectedTariff.limits.allow_answers),
@@ -478,6 +494,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const user = await authUser(req);
     switch (action) {
       case "account": return json(req, { id: user.id, email: user.email || "", display_name: user.user_metadata?.full_name || "" });
+      case "admin.status": return json(req, { is_admin: await isAdmin(user.id) });
+      case "admin.test_publish": return json(req, await publishTestGift(user, body.gift_id));
       case "gifts.list": return json(req, await listGifts(user));
       case "payments.list": return json(req, await listPayments(user));
       case "gifts.get": return json(req, { gift: await serializeGift(await ownedGift(user.id, body.gift_id)) });

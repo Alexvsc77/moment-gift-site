@@ -33,6 +33,8 @@
     .gift[data-template="sun"] { background: linear-gradient(145deg, #fff6d9, #f4dbb1); color: #493d35; }
     .gift[data-template="aurora"] { background: linear-gradient(130deg, #171c43, #367d85, #bd73a9, #171c43); background-size: 300% 300%; color: #fff9f3; animation: rise .7s ease both, aurora-shift 12s ease-in-out infinite alternate; }
     .gift[data-template="bloom"] { background: radial-gradient(circle at 50% 28%, #fff8e4, #efbbcb 42%, #a47db2 88%); color: #4d3651; animation: rise .7s ease both, bloom-glow 5s ease-in-out infinite alternate; }
+    .test-badge { display: none; width: fit-content; margin: 0 auto 24px; padding: 8px 13px; border: 1px solid currentColor; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+    .test-badge.is-visible { display: block; }
     .symbol { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 22px; border: 1px solid currentColor; border-radius: 50%; font-size: 29px; }
     .kicker { margin: 0 0 13px; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
     .gift h2 { margin: 0 0 22px; font-size: clamp(32px, 6vw, 52px); line-height: 1.14; overflow-wrap: anywhere; }
@@ -70,6 +72,7 @@
     </section>
 
     <article class="gift" id="gift" data-template="petal" aria-live="polite">
+      <p class="test-badge" id="test-badge">Тестовый подарок · без оплаты</p>
       <div class="symbol" aria-hidden="true">♥</div>
       <p class="kicker" id="occasion"></p>
       <h2 id="title"></h2>
@@ -113,6 +116,7 @@
 
       function showGift(gift) {
         $("#gift").dataset.template = gift.template;
+        $("#test-badge").classList.toggle("is-visible", Boolean(gift.is_test));
         $("#occasion").textContent = gift.occasion || (gift.recipient ? `Для ${gift.recipient}` : "Особенный момент");
         $("#title").textContent = gift.title;
         $("#message").textContent = gift.message;

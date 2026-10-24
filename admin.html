@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Тестовая админка · Момент</title>
+  <style>
+    :root { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #29253a; background: #f8f5f3; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    .hidden { display: none !important; }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin: auto; }
+    header { background: #1d1c30; color: white; }
+    .header-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { font-family: Georgia, serif; font-size: 28px; text-decoration: none; }
+    .header-links { display: flex; align-items: center; gap: 18px; font-size: 14px; }
+    .header-links a { text-decoration: none; }
+    .admin-tag { padding: 7px 11px; border: 1px solid #ffffff55; border-radius: 999px; color: #f5c4d0; }
+    main { padding: 48px 0 80px; }
+    h1, h2, h3 { margin-top: 0; }
+    h1, h2 { font-family: Georgia, serif; font-weight: normal; }
+    h1 { font-size: clamp(38px, 5vw, 58px); margin-bottom: 12px; }
+    h2 { font-size: 31px; }
+    p { line-height: 1.55; }
+    .intro { max-width: 760px; color: #665f70; margin-bottom: 30px; }
+    .notice { background: #fff0d7; border: 1px solid #efdbac; padding: 14px 18px; border-radius: 14px; color: #604626; margin: 20px 0 30px; }
+    .card { background: white; border: 1px solid #ebe4e2; box-shadow: 0 18px 55px #30253c0b; border-radius: 22px; padding: 28px; }
+    .login-card { max-width: 530px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 24px; align-items: start; }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
+    label { display: grid; gap: 7px; color: #524b5b; font-size: 14px; font-weight: 650; }
+    label.wide { grid-column: 1 / -1; }
+    input, select, textarea { width: 100%; border: 1px solid #d9d0d2; background: #fff; border-radius: 11px; padding: 12px 13px; color: #29253a; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #7866ab; box-shadow: 0 0 0 3px #7866ab20; }
+    textarea { resize: vertical; min-height: 120px; }
+    input[type=file] { padding: 10px; }
+    small { color: #756c7b; font-weight: normal; line-height: 1.4; }
+    .button { border: 0; border-radius: 12px; min-height: 46px; padding: 0 20px; background: #28243b; color: white; font-weight: 700; }
+    .button:hover { background: #4e3d70; }
+    .button:disabled { opacity: .55; cursor: not-allowed; }
+    .button.secondary { background: #f3edf0; color: #342e40; }
+    .button.secondary:hover { background: #e9dfe7; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .hint { padding: 12px 14px; border-radius: 12px; background: #f7f1f5; color: #62556e; font-size: 14px; }
+    .preview { border-radius: 24px; padding: 42px 28px; min-height: 320px; display: grid; align-content: center; text-align: center; background: linear-gradient(140deg, #fff5ef, #f4dce5); overflow-wrap: anywhere; }
+    .preview[data-template="night"] { color: white; background: linear-gradient(140deg, #211e39, #615477); }
+    .preview[data-template="sun"] { background: linear-gradient(140deg, #fff0be, #ffcec1); }
+    .preview[data-template="aurora"] { color: white; background: linear-gradient(140deg, #293665, #966eb1, #d98b9f); }
+    .preview[data-template="bloom"] { background: linear-gradient(140deg, #e6f2dc, #f8d7e2); }
+    .preview h3 { font: normal 36px Georgia, serif; margin: 10px 0; }
+    .preview p { margin: 8px 0; white-space: pre-wrap; }
+    .preview .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; font-weight: 800; }
+    .result { margin-top: 24px; border-color: #b9d8c4; background: #f8fff9; }
+    .result a { display: block; overflow-wrap: anywhere; color: #34557d; font-weight: 700; }
+    .status { min-height: 24px; margin-top: 16px; color: #574775; }
+    .status.error { color: #a52243; }
+    .list-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin: 48px 0 18px; }
+    .list-heading h2 { margin: 0; }
+    .gift-list { display: grid; gap: 14px; }
+    .gift-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid #e8e1e1; border-radius: 16px; padding: 18px 20px; background: white; }
+    .gift-row h3 { margin: 0 0 5px; }
+    .gift-row p { margin: 0; color: #6c6370; font-size: 14px; }
+    .gift-row a { display: block; max-width: 590px; margin-top: 6px; overflow-wrap: anywhere; color: #4b5285; font-size: 14px; }
+    .badge { display: inline-block; border-radius: 999px; background: #fff0d7; padding: 5px 9px; color: #6c4c22; font-size: 12px; font-weight: 800; margin-bottom: 9px; }
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    @media (max-width: 850px) { .layout { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { .fields { grid-template-columns: 1fr; } .gift-row { display: block; } .row-actions { margin-top: 15px; } .header-links { gap: 9px; } }
+  </style>
+</head>
+<body>
+  <header><div class="wrap header-inner"><a class="brand" href="./">Момент</a><div class="header-links"><span class="admin-tag">Тестовая админка</span><a href="./">На сайт ↗</a></div></div></header>
+  <main class="wrap">
+    <h1>Проверь подарок до запуска</h1>
+    <p class="intro">Собери тестовый подарок любого тарифа, открой его как получатель и посмотри, как выглядят ссылка, музыка, фото, видео и ответы. Доступ есть только у администратора.</p>
+    <div class="notice"><strong>Тестовый режим.</strong> Деньги не списываются, платёж в истории не появляется. Ссылка открывается у любого, кому ты её отправишь, и на странице получателя будет отметка «Тестовый подарок».</div>
+
+    <p id="loading" role="status">Проверяем вход и права администратора…</p>
+    <section id="login" class="card login-card hidden" aria-labelledby="login-title">
+      <h2 id="login-title">Войди в свой аккаунт</h2>
+      <p>Используй email, который получил доступ к админке. Если письмо откроет главную страницу, вернись сюда — вход сохранится.</p>
+      <form id="email-form"><label>Email<input id="email" type="email" autocomplete="email" required></label><div class="actions"><button class="button" type="submit">Получить код</button></div></form>
+      <form id="code-form" class="hidden"><label>Код из письма<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label><div class="actions"><button class="button" type="submit">Войти</button><button class="button secondary" id="change-email" type="button">Другой email</button></div></form>
+    </section>
+    <section id="denied" class="card login-card hidden"><h2>Нет доступа</h2><p>Ты вошёл под другим аккаунтом. Для этой страницы нужен аккаунт администратора.</p><button class="button secondary" id="sign-out" type="button">Выйти и сменить аккаунт</button></section>
+
+    <section id="dashboard" class="hidden" aria-label="Создание тестового подарка">
+      <div class="layout">
+        <form id="gift-form" class="card">
+          <h2>Новый тестовый подарок</h2>
+          <div class="fields">
+            <label>Тариф<select id="plan" required></select></label>
+            <label>Шаблон<select id="template" required></select></label>
+            <label class="wide">Возможности тарифа<span id="plan-details" class="hint"></span></label>
+            <label>Кому<input id="recipient" maxlength="50" placeholder="Например, Ане"></label>
+            <label>От кого<input id="sender" maxlength="50" placeholder="Твоё имя"></label>
+            <label class="wide">Заголовок<input id="title" maxlength="70" required placeholder="Для тебя — с любовью"></label>
+            <label class="wide">Послание<textarea id="message" maxlength="600" required placeholder="Напиши то, что хочется сказать…"></textarea></label>
+            <label>Повод<input id="occasion" maxlength="50" placeholder="День рождения"></label>
+            <label>Название ссылки<input id="slug" maxlength="60" required pattern="[A-Za-zА-Яа-яЁё0-9_-]+" title="Буквы, цифры, дефис или подчёркивание"></label>
+            <label id="music-field">Музыка<select id="music"><option value="">Без музыки</option><option value="calm">Тихий вечер</option><option value="warm">Тёплый свет</option><option value="bright">Радостный день</option></select></label>
+            <label id="schedule-field" class="hidden">Выдать ссылку позже<input id="schedule" type="datetime-local"><small>Оставь пустым, чтобы получить ссылку сразу.</small></label>
+            <label class="wide">Фото<input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple><small id="photo-hint">До 3 фото, каждое до 5 МБ.</small></label>
+            <label id="video-field" class="wide hidden">Видео<input id="video" type="file" accept="video/mp4"><small>Одно видео MP4 до 50 МБ.</small></label>
+          </div>
+          <div class="actions"><button class="button" id="publish" type="submit">Создать тестовую ссылку</button></div>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+        </form>
+        <aside>
+          <div class="card"><h2>Предпросмотр</h2><div class="preview" id="preview" data-template="petal"><span class="eyebrow" id="preview-recipient">Особенный момент</span><h3 id="preview-title">Для тебя — с любовью</h3><p id="preview-message">Твоё послание появится здесь.</p><p id="preview-sender">С любовью, от меня</p></div><p><small>Полная анимация открытия и возможности тарифа видны по тестовой ссылке.</small></p></div>
+          <div class="card result hidden" id="result"><h2>Ссылка готова</h2><p id="result-note"></p><a id="result-link" target="_blank" rel="noopener noreferrer"></a><div class="actions"><button class="button secondary" id="copy-link" type="button">Скопировать ссылку</button><a class="button" id="open-link" target="_blank" rel="noopener noreferrer">Открыть как получатель ↗</a></div></div>
+        </aside>
+      </div>
+      <div class="list-heading"><h2>Тестовые подарки и черновики</h2><button class="button secondary" id="refresh" type="button">Обновить статусы</button></div>
+      <div id="gift-list" class="gift-list"></div>
+    </section>
+    <p class="status" id="page-status" role="status" aria-live="polite"></p>
+  </main>
+  <script src="site-config.js"></script>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const supabase = createClient(window.MomentConfig.supabaseUrl, window.MomentConfig.publishableKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+    const $ = (selector) => document.querySelector(selector);
+    const templateNames = { petal: "Нежность", night: "Вечер", sun: "Солнце", aurora: "Сияние", bloom: "Цветение" };
+    const statusNames = { draft: "Черновик", awaiting_link: "Ожидает выдачи", link_ready: "Ссылка готова", opened: "Открыт", answered: "Получен ответ", expired: "Истёк", cancelled: "Отменён", refunded: "Возвращён" };
+    let tariffs = [];
+    let adminReady = false;
+
+    function show(selector) {
+      for (const id of ["#loading", "#login", "#denied", "#dashboard"]) $(id).classList.add("hidden");
+      $(selector).classList.remove("hidden");
+    }
+
+    function message(text, error = false) {
+      $("#status").textContent = text;
+      $("#status").classList.toggle("error", error);
+      $("#page-status").textContent = text;
+      $("#page-status").classList.toggle("error", error);
+    }
+
+    async function api(action, data = {}) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const headers = { "Content-Type": "application/json", apikey: window.MomentConfig.publishableKey };
+      if (sessionData.session) headers.Authorization = `Bearer ${sessionData.session.access_token}`;
+      const response = await fetch(`${window.MomentConfig.supabaseUrl}/functions/v1/moment-api`, {
+        method: "POST", headers, body: JSON.stringify({ action, ...data })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Не удалось выполнить запрос.");
+      return result;
+    }
+
+    function currentTariff() { return tariffs.find((item) => item.slug === $("#plan").value); }
+
+    function renderPlan() {
+      const selected = currentTariff();
+      if (!selected) return;
+      const limits = selected.limits;
+      const template = $("#template");
+      const previous = template.value;
+      template.replaceChildren();
+      for (const slug of limits.allowed_templates) {
+        const option = document.createElement("option");
+        option.value = slug;
+        option.textContent = templateNames[slug] || slug;
+        template.append(option);
+      }
+      if (limits.allowed_templates.includes(previous)) template.value = previous;
+      $("#music-field").classList.toggle("hidden", !limits.allow_music);
+      if (!limits.allow_music) $("#music").value = "";
+      $("#video-field").classList.toggle("hidden", !limits.allow_video);
+      if (!limits.allow_video) $("#video").value = "";
+      $("#schedule-field").classList.toggle("hidden", !limits.allow_scheduled_release);
+      if (!limits.allow_scheduled_release) $("#schedule").value = "";
+      $("#photo-hint").textContent = `До ${limits.max_photos} фото, каждое до 5 МБ.`;
+      $("#plan-details").textContent = `${selected.name} · ${Number(selected.price).toLocaleString("ru-RU")} ₽ · ${limits.max_photos} фото · ссылка ${limits.link_days} дней${limits.allow_music ? " · музыка" : ""}${limits.allow_answers ? " · ответы" : ""}${limits.allow_video ? " · видео" : ""}. В админке оплата не проводится.`;
+      renderPreview();
+    }
+
+    function renderPreview() {
+      $("#preview").dataset.template = $("#template").value || "petal";
+      $("#preview-recipient").textContent = $("#occasion").value.trim() || ($("#recipient").value.trim() ? `Для ${$("#recipient").value.trim()}` : "Особенный момент");
+      $("#preview-title").textContent = $("#title").value.trim() || "Для тебя — с любовью";
+      $("#preview-message").textContent = $("#message").value.trim() || "Твоё послание появится здесь.";
+      $("#preview-sender").textContent = $("#sender").value.trim() ? `С любовью, ${$("#sender").value.trim()}` : "С любовью, от меня";
+    }
+
+    function newSlug() {
+      const random = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+      return `test-${Date.now().toString(36)}-${random}`;
+    }
+
+    async function loadTariffs() {
+      tariffs = (await api("tariffs")).tariffs;
+      const plan = $("#plan");
+      plan.replaceChildren();
+      for (const item of tariffs) {
+        const option = document.createElement("option");
+        option.value = item.slug;
+        option.textContent = `${item.name} · ${Number(item.price).toLocaleString("ru-RU")} ₽`;
+        plan.append(option);
+      }
+      renderPlan();
+    }
+
+    async function checkAccess() {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { adminReady = false; show("#login"); return; }
+      try {
+        const result = await api("admin.status");
+        adminReady = Boolean(result.is_admin);
+        show(adminReady ? "#dashboard" : "#denied");
+        if (adminReady) { await loadTariffs(); await loadGifts(); }
+      } catch (error) { adminReady = false; show("#login"); $("#page-status").textContent = error.message; }
+    }
+
+    function showResult(gift) {
+      const result = $("#result");
+      result.classList.remove("hidden");
+      const link = $("#result-link");
+      if (gift.link) {
+        $("#result-note").textContent = "Открой ссылку в новой вкладке, чтобы увидеть подарок глазами получателя.";
+        link.href = gift.link;
+        link.textContent = gift.link;
+        $("#open-link").href = gift.link;
+        $("#open-link").classList.remove("hidden");
+        $("#copy-link").classList.remove("hidden");
+      } else {
+        const time = gift.scheduled_release_at ? new Date(gift.scheduled_release_at).toLocaleString("ru-RU") : "позже";
+        $("#result-note").textContent = `Премиум-ссылка появится ${time}. Нажми «Обновить статусы» после этого времени.`;
+        link.removeAttribute("href");
+        link.textContent = "Ссылка ещё не выдана";
+        $("#open-link").classList.add("hidden");
+        $("#copy-link").classList.add("hidden");
+      }
+      result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    async function uploadFile(giftId, file, kind) {
+      const prepared = await api("media.prepare", { gift_id: giftId, kind, mime_type: file.type, size_bytes: file.size });
+      const uploaded = await supabase.storage.from(prepared.bucket).uploadToSignedUrl(prepared.path, prepared.token, file, {
+        contentType: file.type, upsert: false
+      });
+      if (uploaded.error) throw new Error("Не удалось загрузить файл. Черновик сохранён ниже.");
+      await api("media.complete", { gift_id: giftId, path: prepared.path });
+    }
+
+    async function loadGifts() {
+      const gifts = (await api("gifts.list")).gifts.filter((gift) => gift.is_test || gift.status === "draft");
+      const list = $("#gift-list");
+      list.replaceChildren();
+      if (!gifts.length) { const empty = document.createElement("p"); empty.textContent = "Пока нет тестовых подарков."; list.append(empty); }
+      for (const gift of gifts) {
+        const row = document.createElement("article"); row.className = "gift-row";
+        const text = document.createElement("div");
+        const badge = document.createElement("span"); badge.className = "badge"; badge.textContent = gift.is_test ? "Тестовый подарок" : "Черновик";
+        const title = document.createElement("h3"); title.textContent = gift.title || "Без названия";
+        const meta = document.createElement("p"); meta.textContent = `${tariffs.find((item) => item.slug === gift.tariff)?.name || gift.tariff} · ${statusNames[gift.status] || gift.status} · ${gift.custom_slug || "без названия ссылки"}${gift.answer ? ` · Ответ: ${gift.answer.choice === "yes" ? "Да" : "Подумаю"}` : ""}`;
+        text.append(badge, title, meta);
+        if (gift.link) { const link = document.createElement("a"); link.href = gift.link; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = gift.link; text.append(link); }
+        if (gift.status === "awaiting_link" && gift.scheduled_release_at) { const when = document.createElement("p"); when.textContent = `Выдача: ${new Date(gift.scheduled_release_at).toLocaleString("ru-RU")}`; text.append(when); }
+        row.append(text);
+        if (gift.status === "draft") {
+          const actions = document.createElement("div"); actions.className = "row-actions";
+          const button = document.createElement("button"); button.type = "button"; button.className = "button secondary"; button.textContent = "Выдать тестовую ссылку";
+          button.addEventListener("click", async () => {
+            button.disabled = true;
+            try { const result = await api("admin.test_publish", { gift_id: gift.id }); showResult(result.gift); await loadGifts(); message("Тестовый подарок опубликован."); }
+            catch (error) { message(error.message, true); button.disabled = false; }
+          });
+          actions.append(button); row.append(actions);
+        }
+        list.append(row);
+      }
+    }
+
+    $("#gift-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!adminReady) return;
+      const selected = currentTariff();
+      const photos = Array.from($("#photos").files || []);
+      const video = $("#video").files?.[0] || null;
+      if (photos.length > selected.limits.max_photos || photos.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024)) { message("Проверь количество и размер фотографий.", true); return; }
+      if (video && (!selected.limits.allow_video || video.type !== "video/mp4" || video.size > 50 * 1024 * 1024)) { message("Видео доступно только в Премиуме: MP4 до 50 МБ.", true); return; }
+      const schedule = $("#schedule").value;
+      if (schedule && new Date(schedule).getTime() <= Date.now()) { message("Выбери время выдачи в будущем.", true); return; }
+      const button = $("#publish"); button.disabled = true;
+      try {
+        message("Сохраняем тестовый черновик…");
+        const payload = {
+          plan: selected.slug, template: $("#template").value, music_track: selected.limits.allow_music ? $("#music").value : "",
+          recipient: $("#recipient").value, title: $("#title").value, message: $("#message").value,
+          sender: $("#sender").value, occasion: $("#occasion").value,
+          custom_slug: $("#slug").value, contact_email: "",
+          scheduled_release_at: schedule ? new Date(schedule).toISOString() : null
+        };
+        const saved = await api("gifts.save", { payload });
+        for (const photo of photos) { message(`Загружаем фото «${photo.name}»…`); await uploadFile(saved.gift.id, photo, "photo"); }
+        if (video) { message(`Загружаем видео «${video.name}»…`); await uploadFile(saved.gift.id, video, "video"); }
+        const result = await api("admin.test_publish", { gift_id: saved.gift.id });
+        showResult(result.gift);
+        message(result.gift.link ? "Тестовая ссылка готова." : "Тестовый подарок сохранён. Ссылка появится по расписанию.");
+        $("#slug").value = newSlug();
+        $("#photos").value = ""; $("#video").value = "";
+        await loadGifts();
+      } catch (error) { message(`${error.message} Если черновик сохранился, он появится в списке ниже.`, true); await loadGifts().catch(() => {}); }
+      finally { button.disabled = false; }
+    });
+
+    $("#email-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = event.submitter; button.disabled = true;
+      const { error } = await supabase.auth.signInWithOtp({ email: $("#email").value.trim(), options: { emailRedirectTo: window.MomentConfig.siteUrl } });
+      button.disabled = false;
+      if (error) { $("#page-status").textContent = error.message; return; }
+      $("#email-form").classList.add("hidden"); $("#code-form").classList.remove("hidden");
+      $("#page-status").textContent = "Письмо отправлено. Введи шестизначный код или открой ссылку из письма.";
+    });
+    $("#code-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = event.submitter; button.disabled = true;
+      const { error } = await supabase.auth.verifyOtp({ email: $("#email").value.trim(), token: $("#code").value.trim(), type: "email" });
+      button.disabled = false;
+      if (error) { $("#page-status").textContent = "Код не подошёл или истёк."; return; }
+      $("#page-status").textContent = "";
+      await checkAccess();
+    });
+    $("#change-email").addEventListener("click", () => { $("#code-form").classList.add("hidden"); $("#email-form").classList.remove("hidden"); });
+    $("#sign-out").addEventListener("click", async () => { await supabase.auth.signOut(); await checkAccess(); });
+    $("#refresh").addEventListener("click", () => loadGifts().then(() => message("Статусы обновлены.")).catch((error) => message(error.message, true)));
+    $("#copy-link").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText($("#result-link").href); $("#copy-link").textContent = "Скопировано"; }
+      catch { message("Не удалось скопировать. Выдели адрес ссылки вручную.", true); }
+    });
+    $("#plan").addEventListener("change", renderPlan);
+    for (const element of document.querySelectorAll("#gift-form input, #gift-form textarea, #gift-form select")) element.addEventListener("input", renderPreview);
+    $("#slug").value = newSlug();
+    checkAccess();
+  </script>
+</body>
+</html>
