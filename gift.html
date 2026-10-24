@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>Для тебя есть подарок · Момент</title>
+  <style>
+    :root { color-scheme: light; font-family: Arial, sans-serif; color: #342d43; background: #f7f2ef; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; background: radial-gradient(circle at 15% 13%, #f6dce0, transparent 32%), radial-gradient(circle at 90% 85%, #e8dff2, transparent 35%), #f7f2ef; }
+    button { font: inherit; cursor: pointer; }
+    .shell { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+    .stage { width: min(100%, 640px); text-align: center; }
+    .eyebrow { margin: 0 0 16px; color: #846e97; font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+    h1, h2 { font-family: Georgia, serif; font-weight: 400; }
+    h1 { margin: 0 0 12px; font-size: clamp(34px, 7vw, 58px); line-height: 1.08; }
+    .intro { max-width: 420px; margin: 0 auto 32px; color: #726c7b; line-height: 1.7; }
+    .envelope { position: relative; display: grid; place-items: center; width: min(310px, 78vw); height: 200px; margin: 0 auto 38px; border-radius: 12px; background: #eec6cc; box-shadow: 0 20px 50px #8e6a8233; transform: rotate(-4deg); transition: transform .6s ease; }
+    .envelope::before { content: ""; position: absolute; inset: 0; clip-path: polygon(0 0, 50% 57%, 100% 0); background: #f6d7dc; border-radius: 12px 12px 0 0; }
+    .envelope::after { content: "♥"; position: relative; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: #a96c87; color: white; font-size: 25px; box-shadow: 0 5px 16px #8e617855; }
+    .opened .envelope { transform: translateY(-36px) rotate(8deg) scale(.72); opacity: 0; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 51px; padding: 12px 24px; border: 0; border-radius: 11px; background: #413552; color: white; font-weight: 700; transition: transform .2s, background .2s; }
+    .button:hover { transform: translateY(-2px); background: #625174; }
+    .button:disabled { cursor: wait; opacity: .6; }
+    .button:focus-visible { outline: 3px solid #b1759a; outline-offset: 4px; }
+    .error { min-height: 22px; margin: 16px 0 0; color: #aa304c; font-size: 14px; }
+    .gift { display: none; width: min(100%, 690px); padding: clamp(28px, 6vw, 58px); border: 1px solid #ffffffaa; border-radius: 25px; background: #fff9f5; box-shadow: 0 22px 70px #5e4b6230; text-align: center; }
+    .opened .gift { display: block; animation: rise .7s ease both; }
+    .opened .stage { display: none; }
+    .gift[data-template="night"] { background: radial-gradient(circle at 50% 0, #564c7c, #24243d 75%); color: #fff7ec; }
+    .gift[data-template="sun"] { background: linear-gradient(145deg, #fff6d9, #f4dbb1); color: #493d35; }
+    .gift[data-template="aurora"] { background: linear-gradient(130deg, #171c43, #367d85, #bd73a9, #171c43); background-size: 300% 300%; color: #fff9f3; animation: rise .7s ease both, aurora-shift 12s ease-in-out infinite alternate; }
+    .gift[data-template="bloom"] { background: radial-gradient(circle at 50% 28%, #fff8e4, #efbbcb 42%, #a47db2 88%); color: #4d3651; animation: rise .7s ease both, bloom-glow 5s ease-in-out infinite alternate; }
+    .symbol { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 22px; border: 1px solid currentColor; border-radius: 50%; font-size: 29px; }
+    .kicker { margin: 0 0 13px; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .gift h2 { margin: 0 0 22px; font-size: clamp(32px, 6vw, 52px); line-height: 1.14; overflow-wrap: anywhere; }
+    .message { max-width: 520px; margin: 0 auto 22px; font-size: clamp(16px, 3vw, 19px); line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .sender { margin: 0; font-family: Georgia, serif; font-size: 20px; font-style: italic; }
+    .media { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 28px 0; }
+    .media:empty { display: none; }
+    .media img, .media video { display: block; width: 100%; max-height: 330px; border-radius: 12px; background: #1f1b29; object-fit: cover; }
+    .media video { grid-column: 1 / -1; max-height: 460px; object-fit: contain; }
+    .music-toggle { display: none; margin: 25px auto 0; }
+    .music-toggle.is-visible { display: inline-flex; }
+    .answers { display: none; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+    .answers.is-visible { display: flex; }
+    .answers button { min-height: 42px; padding: 9px 20px; border: 1px solid currentColor; border-radius: 9px; background: transparent; color: inherit; }
+    .answers button:hover { background: #8d6d9633; }
+    .answer-status { min-height: 22px; margin: 15px 0 0; font-size: 14px; }
+    .brand { display: none; margin: 35px 0 0; font-size: 11px; letter-spacing: .1em; opacity: .58; }
+    .brand.is-visible { display: block; }
+    @keyframes rise { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes aurora-shift { to { background-position: 100% 100%; } }
+    @keyframes bloom-glow { to { filter: saturate(1.2) brightness(1.06); } }
+    @media (max-width: 460px) { .shell { padding: 16px; } .gift { border-radius: 18px; } .media { grid-template-columns: 1fr 1fr; gap: 8px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell" id="shell">
+    <section class="stage" aria-labelledby="welcome-title">
+      <p class="eyebrow">Момент для тебя</p>
+      <h1 id="welcome-title">Тебя ждёт подарок</h1>
+      <p class="intro">Кто-то приготовил для тебя особенные слова. Открой конверт, когда будешь готов.</p>
+      <div class="envelope" aria-hidden="true"></div>
+      <button class="button" id="open-button" type="button">Открыть подарок ↗</button>
+      <p class="error" id="open-error" role="alert"></p>
+    </section>
+
+    <article class="gift" id="gift" data-template="petal" aria-live="polite">
+      <div class="symbol" aria-hidden="true">♥</div>
+      <p class="kicker" id="occasion"></p>
+      <h2 id="title"></h2>
+      <div class="media" id="media"></div>
+      <p class="message" id="message"></p>
+      <p class="sender" id="sender"></p>
+      <button class="button music-toggle" id="music-button" type="button">Включить музыку ♪</button>
+      <div class="answers" id="answers" aria-label="Ответить на подарок">
+        <button type="button" data-choice="yes">Да ♥</button>
+        <button type="button" data-choice="think">Подумаю</button>
+      </div>
+      <p class="answer-status" id="answer-status" role="status"></p>
+      <p class="brand" id="brand">создано в моменте</p>
+    </article>
+  </main>
+  <script src="gifts/static/gifts/music.js"></script>
+  <script src="site-config.js"></script>
+  <script>
+    (() => {
+      const $ = (selector) => document.querySelector(selector);
+      let selectedTrack = "";
+      const fragment = window.location.hash.slice(1);
+      const separator = fragment.indexOf("/");
+      const slug = separator >= 0 ? decodeURIComponent(fragment.slice(0, separator)) : "";
+      const token = separator >= 0 ? fragment.slice(separator + 1) : "";
+
+      async function post(action, data = {}) {
+        if (!slug || !/^[a-f0-9]{64}$/.test(token)) throw new Error("Ссылка недоступна.");
+        const response = await fetch(`${window.MomentConfig.supabaseUrl}/functions/v1/moment-api`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: window.MomentConfig.publishableKey
+          },
+          body: JSON.stringify({ action, slug, token, ...data })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "Не удалось выполнить действие.");
+        return result;
+      }
+
+      function showGift(gift) {
+        $("#gift").dataset.template = gift.template;
+        $("#occasion").textContent = gift.occasion || (gift.recipient ? `Для ${gift.recipient}` : "Особенный момент");
+        $("#title").textContent = gift.title;
+        $("#message").textContent = gift.message;
+        $("#sender").textContent = gift.sender ? `С любовью, ${gift.sender}` : "С любовью";
+        $("#brand").classList.toggle("is-visible", gift.service_signature);
+        selectedTrack = gift.music_track || "";
+        $("#music-button").classList.toggle("is-visible", Boolean(selectedTrack));
+        for (const item of gift.media || []) {
+          const element = document.createElement(item.kind === "video" ? "video" : "img");
+          element.src = item.url;
+          if (item.kind === "video") { element.controls = true; element.preload = "metadata"; element.playsInline = true; }
+          else { element.alt = "Фото в подарке"; element.loading = "lazy"; }
+          $("#media").append(element);
+        }
+        $("#answers").classList.toggle("is-visible", gift.allow_answers);
+        $("#shell").classList.add("opened");
+      }
+
+      $("#open-button").addEventListener("click", async () => {
+        const button = $("#open-button");
+        button.disabled = true;
+        $("#open-error").textContent = "";
+        try { showGift(await post("gift.open")); }
+        catch (error) { $("#open-error").textContent = error.message; button.disabled = false; }
+      });
+
+      $("#music-button").addEventListener("click", async (event) => {
+        const button = event.currentTarget;
+        button.disabled = true;
+        try {
+          if (window.MomentMusic?.isPlaying()) await window.MomentMusic.stop();
+          else if (!(await window.MomentMusic?.start(selectedTrack))) {
+            $("#answer-status").textContent = "Этот браузер не поддерживает воспроизведение музыки.";
+          }
+          button.textContent = window.MomentMusic?.isPlaying() ? "Остановить музыку" : "Включить музыку ♪";
+        } catch { $("#answer-status").textContent = "Не удалось включить музыку."; }
+        finally { button.disabled = false; }
+      });
+
+      $("#answers").addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-choice]");
+        if (!button) return;
+        for (const item of $("#answers").querySelectorAll("button")) item.disabled = true;
+        try {
+          await post("gift.answer", { choice: button.dataset.choice });
+          $("#answer-status").textContent = "Спасибо! Твой ответ доставлен отправителю.";
+          $("#answers").classList.remove("is-visible");
+        } catch (error) {
+          $("#answer-status").textContent = error.message;
+          for (const item of $("#answers").querySelectorAll("button")) item.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
