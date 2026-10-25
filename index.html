@@ -411,9 +411,9 @@
 
     <dialog id="auth-dialog" aria-labelledby="dialog-title">
       <h3 id="dialog-title">Войти в Момент</h3>
-      <p>Введи email. Мы отправим ссылку для входа; если в письме есть код, его тоже можно ввести. Черновик останется на месте.</p>
-      <form id="email-request-form"><label class="field"><span>Email</span><input id="auth-email" type="email" autocomplete="email" required></label><div class="dialog-actions"><button class="button" type="submit">Получить код</button><button class="button button--outline" id="auth-close" type="button">Закрыть</button></div></form>
-      <form class="is-hidden" id="email-verify-form"><label class="field"><span>Код из письма</span><input id="auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label><div class="dialog-actions"><button class="button" type="submit">Войти</button><button class="button button--outline" id="auth-back" type="button">Другой email</button></div></form>
+      <p id="auth-description">Войди по email и паролю. Твой черновик останется на месте.</p>
+      <div class="dialog-actions" aria-label="Режим входа"><button class="button" id="auth-mode-login" type="button" aria-pressed="true">Вход</button><button class="button button--outline" id="auth-mode-signup" type="button" aria-pressed="false">Регистрация</button></div>
+      <form id="auth-password-form"><label class="field"><span>Email</span><input id="auth-email" type="email" autocomplete="email" required></label><label class="field"><span>Пароль</span><input id="auth-password" type="password" autocomplete="current-password" required></label><label class="field is-hidden" id="auth-repeat-field"><span>Повтори пароль</span><input id="auth-repeat-password" type="password" autocomplete="new-password"></label><div class="dialog-actions"><button class="button" id="auth-submit" type="submit">Войти</button><button class="button button--outline" id="auth-close" type="button">Закрыть</button></div></form>
       <div class="telegram-login is-hidden" id="telegram-login"><p>Или войди через Telegram</p><div id="telegram-widget"></div></div>
       <div class="vk-login is-hidden" id="vk-login"><p>Или войди через VK ID</p><button class="button button--outline" id="vk-login-button" type="button">Войти через VK ID</button></div>
       <p class="dialog-status" id="auth-status" role="status"></p>
@@ -608,21 +608,6 @@
         }
 
         async function api(url, method = "GET", data = null) {
-          if (url === "/api/auth/email/request/") {
-            const result = await supabase.auth.signInWithOtp({
-              email: data.email,
-              options: { emailRedirectTo: window.MomentConfig.siteUrl }
-            });
-            if (result.error) throw new Error(result.error.message);
-            return {};
-          }
-          if (url === "/api/auth/email/verify/") {
-            const result = await supabase.auth.verifyOtp({
-              email: data.email, token: data.code, type: "email"
-            });
-            if (result.error) throw new Error("Код не подошёл или его срок истёк.");
-            return {};
-          }
           if (url === "/api/tariffs/") return callFunction("tariffs");
           if (url === "/api/account/") return callFunction("account");
           if (url === "/api/account/payments/") return callFunction("payments.list");
@@ -1087,34 +1072,46 @@
           await refreshAccount();
         });
         $("#auth-close").addEventListener("click", () => $("#auth-dialog").close());
-        $("#auth-back").addEventListener("click", () => {
-          $("#email-verify-form").classList.add("is-hidden");
-          $("#email-request-form").classList.remove("is-hidden");
+        let authMode = "login";
+        function setAuthMode(mode) {
+          authMode = mode;
+          const registering = mode === "signup";
+          $("#dialog-title").textContent = registering ? "Создать аккаунт" : "Войти в Момент";
+          $("#auth-description").textContent = registering
+            ? "Придумай пароль от 8 символов. Подтверждение почты не требуется, а черновик останется на месте."
+            : "Войди по email и паролю. Твой черновик останется на месте.";
+          $("#auth-repeat-field").classList.toggle("is-hidden", !registering);
+          $("#auth-repeat-password").required = registering;
+          $("#auth-password").minLength = registering ? 8 : 0;
+          $("#auth-password").autocomplete = registering ? "new-password" : "current-password";
+          $("#auth-submit").textContent = registering ? "Зарегистрироваться" : "Войти";
+          for (const name of ["login", "signup"]) {
+            const button = $(`#auth-mode-${name}`);
+            button.classList.toggle("button--outline", name !== mode);
+            button.setAttribute("aria-pressed", String(name === mode));
+          }
           $("#auth-status").textContent = "";
-        });
-        $("#email-request-form").addEventListener("submit", async (event) => {
+        }
+        $("#auth-mode-login").addEventListener("click", () => setAuthMode("login"));
+        $("#auth-mode-signup").addEventListener("click", () => setAuthMode("signup"));
+        $("#auth-password-form").addEventListener("submit", async (event) => {
           event.preventDefault();
           const button = event.submitter;
           button.disabled = true;
           try {
-            await api("/api/auth/email/request/", "POST", { email: $("#auth-email").value.trim() });
-            $("#email-request-form").classList.add("is-hidden");
-            $("#email-verify-form").classList.remove("is-hidden");
-            $("#auth-status").textContent = "Проверь почту: открой ссылку из письма или введи код, если он указан.";
-            $("#auth-code").focus();
-          } catch (error) { $("#auth-status").textContent = error.message; }
-          finally { button.disabled = false; }
-        });
-        $("#email-verify-form").addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const button = event.submitter;
-          button.disabled = true;
-          try {
-            await api("/api/auth/email/verify/", "POST", {
-              email: $("#auth-email").value.trim(), code: $("#auth-code").value.trim()
-            });
+            const email = $("#auth-email").value.trim();
+            const password = $("#auth-password").value;
+            if (authMode === "signup" && password !== $("#auth-repeat-password").value) {
+              throw new Error("Пароли не совпадают.");
+            }
+            const result = authMode === "signup"
+              ? await supabase.auth.signUp({ email, password })
+              : await supabase.auth.signInWithPassword({ email, password });
+            if (result.error) throw result.error;
+            if (!result.data.session) throw new Error("Аккаунт создан, но вход пока не открыт. Проверь настройку подтверждения email.");
             $("#auth-dialog").close();
             $("#auth-status").textContent = "";
+            $("#auth-password-form").reset();
             await refreshAccount();
             if (pendingCreate) { pendingCreate = false; await createAndCheckout(); }
           } catch (error) { $("#auth-status").textContent = error.message; }

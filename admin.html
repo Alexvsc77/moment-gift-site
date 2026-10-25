@@ -88,6 +88,14 @@
     <section id="denied" class="card login-card hidden"><h2>Нет доступа</h2><p>Ты вошёл под другим аккаунтом. Для этой страницы нужен аккаунт администратора.</p><button class="button secondary" id="sign-out" type="button">Выйти и сменить аккаунт</button></section>
 
     <section id="dashboard" class="hidden" aria-label="Создание тестового подарка">
+      <form id="set-password-form" class="card login-card" autocomplete="off">
+        <h2>Задай пароль для входа</h2>
+        <p>Для твоего существующего аккаунта: после сохранения сможешь входить в админку и на сайт по email и паролю. Пароль вводится только здесь и не сохраняется в странице.</p>
+        <label>Новый пароль<input id="new-password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Повтори пароль<input id="repeat-password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <div class="actions"><button class="button" type="submit">Сохранить пароль</button></div>
+        <p class="status" id="password-status" role="status" aria-live="polite"></p>
+      </form>
       <div class="layout">
         <form id="gift-form" class="card">
           <h2>Новый тестовый подарок</h2>
@@ -332,6 +340,23 @@
       await checkAccess();
     });
     $("#change-email").addEventListener("click", () => { $("#code-form").classList.add("hidden"); $("#email-form").classList.remove("hidden"); });
+    $("#set-password-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const status = $("#password-status");
+      const password = $("#new-password").value;
+      if (password !== $("#repeat-password").value) { status.textContent = "Пароли не совпадают."; return; }
+      const button = event.submitter;
+      button.disabled = true;
+      status.textContent = "Сохраняем пароль…";
+      try {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        form.reset();
+        status.textContent = "Пароль сохранён. Теперь можно входить по email и паролю.";
+      } catch (error) { status.textContent = error.message || "Не удалось сохранить пароль."; }
+      finally { button.disabled = false; }
+    });
     $("#sign-out").addEventListener("click", async () => { await supabase.auth.signOut(); await checkAccess(); });
     $("#refresh").addEventListener("click", () => loadGifts().then(() => message("Статусы обновлены.")).catch((error) => message(error.message, true)));
     $("#copy-link").addEventListener("click", async () => {
