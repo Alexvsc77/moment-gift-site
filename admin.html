@@ -81,9 +81,12 @@
     <p id="loading" role="status">Проверяем вход и права администратора…</p>
     <section id="login" class="card login-card hidden" aria-labelledby="login-title">
       <h2 id="login-title">Войди в свой аккаунт</h2>
-      <p>Используй email, который получил доступ к админке. Если письмо откроет главную страницу, вернись сюда — вход сохранится.</p>
-      <form id="email-form"><label>Email<input id="email" type="email" autocomplete="email" required></label><div class="actions"><button class="button" type="submit">Получить код</button></div></form>
-      <form id="code-form" class="hidden"><label>Код из письма<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label><div class="actions"><button class="button" type="submit">Войти</button><button class="button secondary" id="change-email" type="button">Другой email</button></div></form>
+      <p>Войди с email администратора и паролем своего аккаунта.</p>
+      <form id="login-form">
+        <label>Email<input id="email" type="email" autocomplete="email" required></label>
+        <label>Пароль<input id="password" type="password" autocomplete="current-password" required></label>
+        <div class="actions"><button class="button" type="submit">Войти</button></div>
+      </form>
     </section>
     <section id="denied" class="card login-card hidden"><h2>Нет доступа</h2><p>Ты вошёл под другим аккаунтом. Для этой страницы нужен аккаунт администратора.</p><button class="button secondary" id="sign-out" type="button">Выйти и сменить аккаунт</button></section>
 
@@ -321,25 +324,20 @@
       finally { button.disabled = false; }
     });
 
-    $("#email-form").addEventListener("submit", async (event) => {
+    $("#login-form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const button = event.submitter; button.disabled = true;
-      const { error } = await supabase.auth.signInWithOtp({ email: $("#email").value.trim(), options: { emailRedirectTo: window.MomentConfig.siteUrl } });
-      button.disabled = false;
-      if (error) { $("#page-status").textContent = error.message; return; }
-      $("#email-form").classList.add("hidden"); $("#code-form").classList.remove("hidden");
-      $("#page-status").textContent = "Письмо отправлено. Введи шестизначный код или открой ссылку из письма.";
+      $("#page-status").textContent = "Проверяем вход…";
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email: $("#email").value.trim(), password: $("#password").value });
+        if (error) throw error;
+        $("#password").value = "";
+        $("#page-status").textContent = "";
+        await checkAccess();
+      } catch (error) {
+        $("#page-status").textContent = error.message || "Не удалось войти. Проверь email и пароль.";
+      } finally { button.disabled = false; }
     });
-    $("#code-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const button = event.submitter; button.disabled = true;
-      const { error } = await supabase.auth.verifyOtp({ email: $("#email").value.trim(), token: $("#code").value.trim(), type: "email" });
-      button.disabled = false;
-      if (error) { $("#page-status").textContent = "Код не подошёл или истёк."; return; }
-      $("#page-status").textContent = "";
-      await checkAccess();
-    });
-    $("#change-email").addEventListener("click", () => { $("#code-form").classList.add("hidden"); $("#email-form").classList.remove("hidden"); });
     $("#set-password-form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
